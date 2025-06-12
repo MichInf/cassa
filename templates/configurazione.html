@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configurazione Prodotti</title>
+    <script src="{{ url_for('static', filename='js/tailwind.min.js') }}"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-6">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-bold text-gray-800">⚙️ Configurazione Prodotti</h1>
+            <a href="/" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg">
+                🍻 Torna alla Cassa
+            </a>
+        </div>
+
+        <!-- Aggiungi nuovo prodotto -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Aggiungi Nuovo Prodotto</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <input type="text" id="nuovo-nome" placeholder="Nome prodotto" 
+                       class="border border-gray-300 rounded-lg px-3 py-2">
+                <input type="number" id="nuovo-prezzo" placeholder="Prezzo" step="0.01" min="0"
+                       class="border border-gray-300 rounded-lg px-3 py-2">
+                <button onclick="aggiungiProdotto()" 
+                        class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">
+                    Aggiungi
+                </button>
+            </div>
+        </div>
+
+        <!-- Lista prodotti -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-xl font-semibold mb-4">Prodotti Esistenti</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full table-auto">
+                    <thead>
+                        <tr class="bg-gray-50">
+                            <th class="px-4 py-2 text-left">Nome</th>
+                            <th class="px-4 py-2 text-left">Prezzo</th>
+                            <th class="px-4 py-2 text-center">Attivo</th>
+                            <th class="px-4 py-2 text-center">Azioni</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for prodotto in prodotti %}
+                        <tr class="border-b" data-id="{{ prodotto[0] }}">
+                            <td class="px-4 py-2">
+                                <input type="text" value="{{ prodotto[1] }}" 
+                                       class="nome-input border border-gray-300 rounded px-2 py-1 w-full">
+                            </td>
+                            <td class="px-4 py-2">
+                                <input type="number" value="{{ prodotto[2] }}" step="0.01" min="0"
+                                       class="prezzo-input border border-gray-300 rounded px-2 py-1 w-20">
+                            </td>
+                            <td class="px-4 py-2 text-center">
+                                <input type="checkbox" {% if prodotto[3] %}checked{% endif %}
+                                       class="attivo-input w-4 h-4">
+                            </td>
+                            <td class="px-4 py-2 text-center space-x-2">
+                                <button onclick="salvaProdotto({{ prodotto[0] }})" 
+                                        class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm">
+                                    Salva
+                                </button>
+                                <button onclick="eliminaProdotto({{ prodotto[0] }})" 
+                                        class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm">
+                                    Elimina
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function aggiungiProdotto() {
+            const nome = document.getElementById('nuovo-nome').value.trim();
+            const prezzo = parseFloat(document.getElementById('nuovo-prezzo').value);
+            
+            if (!nome || isNaN(prezzo) || prezzo < 0) {
+                alert('Inserisci nome e prezzo validi');
+                return;
+            }
+            
+            fetch('/api/aggiungi_prodotto', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    nome: nome,
+                    prezzo: prezzo
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Errore nell\'aggiunta del prodotto');
+                }
+            })
+            .catch(error => {
+                console.error('Errore:', error);
+                alert('Errore nell\'aggiunta del prodotto');
+            });
+        }
+
+        function salvaProdotto(id) {
+            const row = document.querySelector(`tr[data-id="${id}"]`);
+            const nome = row.querySelector('.nome-input').value.trim();
+            const prezzo = parseFloat(row.querySelector('.prezzo-input').value);
+            const attivo = row.querySelector('.attivo-input').checked;
+            
+            if (!nome || isNaN(prezzo) || prezzo < 0) {
+                alert('Inserisci nome e prezzo validi');
+                return;
+            }
+            
+            fetch('/api/modifica_prodotto', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    id: id,
+                    nome: nome,
+                    prezzo: prezzo,
+                    attivo: attivo
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Prodotto salvato!');
+                } else {
+                    alert('Errore nel salvataggio del prodotto');
+                }
+            })
+            .catch(error => {
+                console.error('Errore:', error);
+                alert('Errore nel salvataggio del prodotto');
+            });
+        }
+
+        function eliminaProdotto(id) {
+            if (!confirm('Sei sicuro di voler eliminare questo prodotto?')) {
+                return;
+            }
+            
+            fetch('/api/elimina_prodotto', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    id: id
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Errore nell\'eliminazione del prodotto');
+                }
+            })
+            .catch(error => {
+                console.error('Errore:', error);
+                alert('Errore nell\'eliminazione del prodotto');
+            });
+        }
+    </script>
+</body>
+</html>
