@@ -18,22 +18,32 @@ def test_active_event_seeded(client):
     assert r.json()["active"] is True
 
 
-def test_create_and_activate_event(client, admin_headers):
+def test_create_event_opens_it(client, admin_headers):
     # senza PIN -> 401
     assert client.post("/api/events", json={"name": "Sagra"}).status_code == 401
+    # creare una festa la apre (diventa l'unica attiva)
     r = client.post("/api/events", json={"name": "Sagra 2026", "note": "test"},
                     headers=admin_headers)
     assert r.status_code == 200
     new_id = r.json()["id"]
-    # non e' la prima festa -> non attiva automaticamente
-    assert r.json()["active"] is False
-    # attivo la nuova festa
-    r = client.post(f"/api/events/{new_id}/activate", headers=admin_headers)
-    assert r.status_code == 200
     assert r.json()["active"] is True
-    # ora la festa attiva e' quella nuova e non ha prodotti
     assert client.get("/api/events/active").json()["id"] == new_id
+    # la festa di default precedente ora e' chiusa
+    events = {e["id"]: e for e in client.get("/api/events").json()}
+    assert sum(1 for e in events.values() if e["active"]) == 1
+    # la nuova festa non ha prodotti
     assert client.get("/api/products").json() == []
+
+
+def test_close_event(client, admin_headers):
+    active = client.get("/api/events/active").json()
+    r = client.post(f"/api/events/{active['id']}/close", headers=admin_headers)
+    assert r.status_code == 200
+    assert r.json()["active"] is False
+    # nessuna festa aperta: la cassa non puo' creare ordini
+    assert client.get("/api/events/active").json() is None
+    p_fake = {"items": [{"product_id": 1, "quantity": 1}]}
+    assert client.post("/api/orders", json=p_fake).status_code == 409
 
 
 def test_delete_event_with_orders_blocked(client, admin_headers):
@@ -87,13 +97,11 @@ def test_create_order_computes_totals_server_side(client):
 
 
 def test_order_uses_active_event_products_only(client, admin_headers):
-    # creo e attivo una seconda festa senza prodotti
-    new = client.post("/api/events", json={"name": "Altra"}, headers=admin_headers).json()
-    # prodotto della prima festa
-    first_event_products = client.get("/api/products").json()
-    pid = first_event_products[0]["id"]
-    client.post(f"/api/events/{new['id']}/activate", headers=admin_headers)
-    # ordinare un prodotto di un'altra festa -> 400
+    # prodotto della festa di default (prima di aprirne un'altra)
+    pid = client.get("/api/products").json()[0]["id"]
+    # creare una nuova festa la apre (chiude la default): resta senza prodotti
+    client.post("/api/events", json={"name": "Altra"}, headers=admin_headers)
+    # ordinare un prodotto della festa chiusa -> 400
     r = client.post("/api/orders", json={"items": [{"product_id": pid, "quantity": 1}]})
     assert r.status_code == 400
 

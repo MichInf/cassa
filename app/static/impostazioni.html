@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Impostazioni - Gestione</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <script src="/static/admin-common.js" defer></script>
+  <script src="/static/impostazioni.js" defer></script>
+</head>
+<body>
+  <main id="admin-content" class="admin-content hidden">
+    <section class="card">
+      <h2>Impostazioni scontrino</h2>
+      <form id="settings-form" class="form-grid">
+        <label>Nome associazione
+          <input id="s-association" type="text" />
+        </label>
+        <label>Messaggio scontrino (footer)
+          <input id="s-footer" type="text" />
+        </label>
+        <label>Modalita' stampante
+          <select id="s-printer">
+            <option value="dummy">dummy (test)</option>
+            <option value="usb">usb (reale)</option>
+          </select>
+        </label>
+        <label>Nuovo PIN
+          <input id="s-pin" type="password" autocomplete="new-password" placeholder="••••" />
+        </label>
+        <div class="form-actions full">
+          <button class="btn btn-print" type="submit">Salva impostazioni</button>
+        </div>
+      </form>
+      <p class="hint">Il nome della festa sullo scontrino viene preso dalla festa aperta.</p>
+    </section>
+
+    <section class="card">
+      <h2>Manutenzione</h2>
+      <p>
+        <button id="btn-test-print" class="btn btn-secondary" type="button">Test stampa</button>
+      </p>
+      <hr />
+      <p>
+        <button id="btn-reset" class="btn btn-danger" type="button">RESET ordini festa aperta</button>
+      </p>
+      <p class="hint">Il reset azzera gli ordini della festa aperta (viene creato un
+        backup lato server prima di procedere).</p>
+    </section>
+  </main>
+</body>
+</html>

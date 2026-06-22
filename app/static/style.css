@@ -1,5 +1,7 @@
-/* style.css — Stile per cassa e gestione.
-   Pulito, ad alto contrasto, pulsanti grandi adatti al touch su tablet.
+/* style.css — Identità visiva "Luminarie": una sagra di sera.
+   Topbar blu notte con fila di lampadine; superficie di lavoro su carta-menù
+   chiara e leggibile. Accenti rosso-insegna e ambra-luminaria.
+   Pulsanti grandi, alto contrasto, adatti al touch su tablet.
    Nessuna dipendenza esterna: funziona completamente offline. */
 
 /* ---------- Reset di base ---------- */
@@ -10,19 +12,47 @@
 }
 
 :root {
-  --bg: #f2f4f7;
-  --surface: #ffffff;
-  --text: #1a1f26;
-  --muted: #5b6470;
-  --primary: #1565c0;
-  --primary-dark: #0d47a1;
-  --success: #2e7d32;
-  --success-dark: #1b5e20;
-  --danger: #c62828;
-  --danger-dark: #8e0000;
-  --border: #d3d9e0;
-  --shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+  /* Cielo della sera: chrome (topbar, gate). */
+  --night: #18223f;
+  --night-2: #28335c;
+  --night-line: rgba(255, 255, 255, 0.16);
+
+  /* Carta e superfici di lavoro. */
+  --paper: #fbf6ec;
+  --surface: #fffdf8;
+  --surface-2: #f6efe0;
+
+  /* Inchiostro. */
+  --ink: #221e18;
+  --text: #221e18;
+  --muted: #6e665a;
+
+  /* Insegna smaltata + luminaria. */
+  --rosso: #b5322b;
+  --rosso-dark: #8e241f;
+  --ambra: #f2b441;
+  --ambra-deep: #d99a1f;
+  --verde: #2f7d4f;
+  --verde-dark: #215c39;
+
+  /* Mappatura sui nomi storici usati da HTML/JS. */
+  --bg: var(--paper);
+  --primary: #2a3a6b;        /* blu notte schiarito per testi/azioni neutre */
+  --primary-dark: var(--night);
+  --success: var(--verde);
+  --success-dark: var(--verde-dark);
+  --danger: var(--rosso);
+  --danger-dark: var(--rosso-dark);
+
+  --border: #e6dcc8;
+  --border-strong: #d8caac;
+  --shadow: 0 2px 8px rgba(45, 32, 12, 0.10);
+  --shadow-lift: 0 10px 34px rgba(24, 34, 63, 0.28);
   --radius: 12px;
+
+  --font-display: "Bahnschrift", "Roboto Condensed", "Oswald",
+    "Arial Narrow", system-ui, sans-serif;
+  --font-body: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
 }
 
 html, body {
@@ -30,55 +60,116 @@ html, body {
 }
 
 body {
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-  background: var(--bg);
+  font-family: var(--font-body);
+  background: var(--paper);
   color: var(--text);
   font-size: 18px;
-  line-height: 1.4;
+  line-height: 1.45;
   -webkit-text-size-adjust: 100%;
 }
 
-/* ---------- Barra superiore ---------- */
+/* Numeri sempre tabulari dove conta (prezzi, totali, quantità). */
+.product-price,
+.cart-line-total,
+.cart-total,
+.qty-val,
+.data-table td {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Famiglia "insegna" per i titoli. */
+h1, h2, h3,
+.cart-title,
+.category-title,
+.data-table th {
+  font-family: var(--font-display);
+  letter-spacing: 0.01em;
+}
+
+/* ---------- Barra superiore: il cielo + le luminarie ---------- */
 .topbar {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: var(--primary-dark);
+  gap: 16px;
+  background: linear-gradient(160deg, var(--night) 0%, var(--night-2) 100%);
   color: #fff;
-  padding: 12px 20px;
-  box-shadow: var(--shadow);
+  padding: 14px 22px 24px;
+  box-shadow: 0 4px 18px rgba(24, 34, 63, 0.30);
+}
+
+/* Il filo + le lampadine appese sotto il bordo della topbar (CSS puro). */
+.topbar::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 7px;
+  height: 12px;
+  pointer-events: none;
+  background-image:
+    /* il filo */
+    linear-gradient(var(--night-line), var(--night-line)),
+    /* alone caldo delle lampadine */
+    radial-gradient(circle at 14px 8px,
+      rgba(242, 180, 65, 0.45) 0 5px, rgba(242, 180, 65, 0) 8px),
+    /* la lampadina */
+    radial-gradient(circle at 14px 7px,
+      #fff2cf 0 1.5px, var(--ambra) 2px 3.5px, var(--ambra-deep) 4px, transparent 5px);
+  background-repeat: repeat-x, repeat-x, repeat-x;
+  background-size: 100% 2px, 28px 12px, 28px 12px;
+  background-position: 0 0, 0 0, 0 0;
+}
+
+.topbar-title {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  min-width: 0;
 }
 
 .topbar-title h1 {
-  font-size: 1.5rem;
-  line-height: 1.1;
+  font-size: 1.7rem;
+  line-height: 1;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 .topbar-title .subtitle {
   display: block;
+  width: 100%;
+  font-family: var(--font-body);
   font-size: 0.85rem;
-  opacity: 0.85;
+  letter-spacing: normal;
+  opacity: 0.82;
 }
 
+/* Link "Gestione →" / "Cassa →" sulla cassa. */
 .link-admin {
   color: #fff;
   text-decoration: none;
-  font-size: 1rem;
-  padding: 8px 14px;
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  border-radius: 8px;
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 0.95rem;
+  padding: 9px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: 999px;
   white-space: nowrap;
 }
 
 .link-admin:hover {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.14);
 }
 
 /* ---------- Layout cassa ---------- */
 .cassa-layout {
   display: flex;
   gap: 16px;
-  padding: 16px;
+  padding: 18px 16px;
   align-items: flex-start;
 }
 
@@ -94,9 +185,9 @@ body {
 }
 
 .error-box {
-  background: #fdecea;
-  color: var(--danger-dark);
-  border: 1px solid #f5c6c2;
+  background: #fbe9e7;
+  color: var(--rosso-dark);
+  border: 1px solid #f0c4bf;
   border-radius: 8px;
   padding: 12px;
   margin: 8px 0;
@@ -104,17 +195,17 @@ body {
 
 /* ---------- Categorie e griglia prodotti ---------- */
 .category {
-  margin-bottom: 20px;
+  margin-bottom: 22px;
 }
 
 .category-title {
-  font-size: 1.1rem;
-  color: var(--muted);
+  font-size: 1rem;
+  color: var(--rosso);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 8px;
-  border-bottom: 2px solid var(--border);
-  padding-bottom: 4px;
+  letter-spacing: 0.12em;
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 2px solid var(--border-strong);
 }
 
 .product-grid {
@@ -129,21 +220,22 @@ body {
   justify-content: center;
   align-items: center;
   gap: 6px;
-  min-height: 96px;
+  min-height: 100px;
   padding: 12px;
   background: var(--surface);
-  border: 2px solid var(--border);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
   cursor: pointer;
   box-shadow: var(--shadow);
-  transition: transform 0.05s ease, border-color 0.1s ease;
+  transition: transform 0.05s ease, border-color 0.1s ease, box-shadow 0.1s ease;
   font-size: 1rem;
   color: var(--text);
   text-align: center;
 }
 
 .product-btn:hover {
-  border-color: var(--primary);
+  border-color: var(--ambra-deep);
+  box-shadow: 0 4px 14px rgba(45, 32, 12, 0.16);
 }
 
 .product-btn:active {
@@ -156,9 +248,9 @@ body {
 }
 
 .product-price {
-  color: var(--primary-dark);
-  font-weight: 700;
-  font-size: 1.15rem;
+  color: var(--rosso);
+  font-weight: 800;
+  font-size: 1.2rem;
 }
 
 /* ---------- Carrello ---------- */
@@ -167,6 +259,7 @@ body {
   position: sticky;
   top: 16px;
   background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   padding: 16px;
@@ -176,8 +269,12 @@ body {
 }
 
 .cart-title {
-  font-size: 1.3rem;
+  font-size: 1.35rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
   margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--border-strong);
 }
 
 .cart-lines {
@@ -211,7 +308,7 @@ body {
   font-size: 1.4rem;
   font-weight: 700;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   background: var(--primary);
   color: #fff;
   cursor: pointer;
@@ -219,7 +316,7 @@ body {
 }
 
 .qty-btn:active {
-  background: var(--primary-dark);
+  background: var(--night);
 }
 
 .qty-val {
@@ -239,11 +336,17 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  font-size: 1.6rem;
+  font-family: var(--font-display);
+  font-size: 1.7rem;
   font-weight: 800;
+  letter-spacing: 0.02em;
   padding: 12px 0;
-  border-top: 3px solid var(--text);
+  border-top: 3px solid var(--ink);
   margin-bottom: 12px;
+}
+
+.cart-total span:last-child {
+  color: var(--rosso);
 }
 
 /* ---------- Pulsanti generici ---------- */
@@ -252,53 +355,74 @@ body {
   border: none;
   border-radius: var(--radius);
   cursor: pointer;
-  font-size: 1.1rem;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
   font-weight: 700;
+  letter-spacing: 0.03em;
   padding: 14px 18px;
   color: #fff;
   text-align: center;
   text-decoration: none;
   width: 100%;
+  transition: filter 0.1s ease, transform 0.05s ease;
 }
 
-.btn:active {
-  transform: scale(0.98);
-}
+.btn:hover { filter: brightness(1.06); }
+.btn:active { transform: scale(0.98); }
 
 .btn-print {
-  background: var(--success);
-  font-size: 1.3rem;
+  background: var(--verde);
+  font-size: 1.25rem;
+  text-transform: uppercase;
   margin-bottom: 10px;
 }
 
-.btn-print:hover { background: var(--success-dark); }
+.btn-print:hover { background: var(--verde-dark); filter: none; }
 
 .btn-cancel {
   background: var(--muted);
 }
 
-.btn-cancel:hover { background: #444c56; }
+.btn-cancel:hover { background: #554d40; filter: none; }
 
 .btn-secondary {
   background: var(--primary);
   width: auto;
 }
 
-.btn-secondary:hover { background: var(--primary-dark); }
+.btn-secondary:hover { background: var(--night); filter: none; }
 
 .btn-danger {
-  background: var(--danger);
+  background: var(--rosso);
   width: auto;
 }
 
-.btn-danger:hover { background: var(--danger-dark); }
+.btn-danger:hover { background: var(--rosso-dark); filter: none; }
 
 .btn-small {
   width: auto;
-  padding: 8px 12px;
-  font-size: 0.95rem;
+  padding: 8px 13px;
+  font-size: 0.9rem;
   margin-right: 6px;
   background: var(--primary);
+}
+
+/* Combinazioni esplicite: la classe colore vince sempre sulla taglia,
+   a prescindere dall'ordine di dichiarazione (specificità 0,2,0). */
+.btn-small.btn-danger { background: var(--danger); }
+.btn-small.btn-secondary { background: var(--primary); }
+.btn-small.btn-print { background: var(--verde); }
+
+/* Focus visibile per tastiera. */
+.btn:focus-visible,
+.nav-link:focus-visible,
+.link-admin:focus-visible,
+.product-btn:focus-visible,
+.row-link:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 3px solid var(--ambra);
+  outline-offset: 2px;
 }
 
 /* ---------- Toast ---------- */
@@ -307,11 +431,12 @@ body {
   left: 50%;
   bottom: 24px;
   transform: translateX(-50%) translateY(20px);
-  background: var(--success-dark);
+  background: var(--night);
   color: #fff;
   padding: 14px 22px;
-  border-radius: 10px;
-  box-shadow: var(--shadow);
+  border-radius: 12px;
+  border-left: 5px solid var(--ambra);
+  box-shadow: var(--shadow-lift);
   font-size: 1.05rem;
   max-width: 90%;
   opacity: 0;
@@ -326,38 +451,63 @@ body {
 }
 
 .toast.error {
-  background: var(--danger-dark);
+  background: var(--rosso-dark);
+  border-left-color: #ffd9b0;
 }
 
 /* ---------- Area gestione ---------- */
 .admin-content {
-  max-width: 960px;
+  max-width: 980px;
   margin: 0 auto;
-  padding: 16px;
+  padding: 22px 16px 40px;
 }
 
 .card {
+  position: relative;
   background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
-  padding: 20px;
+  padding: 22px;
   margin-bottom: 20px;
+  overflow: hidden;
+}
+
+/* Regolo rosso-insegna in cima a ogni card: il filo conduttore del marchio. */
+.card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--rosso);
 }
 
 .card h2 {
-  margin-bottom: 12px;
-  border-bottom: 2px solid var(--border);
-  padding-bottom: 8px;
+  font-size: 1.45rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--border-strong);
 }
 
 .card h3 {
   margin: 16px 0 10px;
+  font-size: 1.15rem;
 }
 
 .hint {
   color: var(--muted);
   font-size: 0.9rem;
   margin-top: 6px;
+}
+
+hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 18px 0;
 }
 
 /* ---------- Tabelle ---------- */
@@ -373,17 +523,23 @@ body {
 .data-table th,
 .data-table td {
   text-align: left;
-  padding: 10px 8px;
+  padding: 11px 10px;
   border-bottom: 1px solid var(--border);
   vertical-align: middle;
 }
 
 .data-table th {
-  background: #eef1f5;
-  font-size: 0.9rem;
+  background: var(--surface-2);
+  font-size: 0.82rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.06em;
   color: var(--muted);
+  border-bottom: 2px solid var(--border-strong);
+}
+
+.data-table tbody tr:hover {
+  background: rgba(242, 180, 65, 0.07);
 }
 
 /* ---------- Form ---------- */
@@ -405,10 +561,12 @@ body {
 .form-grid input[type="text"],
 .form-grid input[type="number"],
 .form-grid input[type="password"],
+.form-grid input[type="date"],
 .form-grid select {
+  font-family: var(--font-body);
   font-size: 1rem;
   padding: 12px;
-  border: 2px solid var(--border);
+  border: 2px solid var(--border-strong);
   border-radius: 8px;
   background: #fff;
   color: var(--text);
@@ -419,7 +577,7 @@ body {
 .form-grid select:focus,
 .pin-input:focus {
   outline: none;
-  border-color: var(--primary);
+  border-color: var(--rosso);
 }
 
 .checkbox-label {
@@ -431,6 +589,7 @@ body {
 .checkbox-label input {
   width: 24px;
   height: 24px;
+  accent-color: var(--rosso);
 }
 
 .form-actions {
@@ -440,20 +599,132 @@ body {
   flex-wrap: wrap;
 }
 
+/* Pulsanti di un form/modale: tutti della stessa taglia, niente eccezioni
+   (il .btn-print qui non deve essere più grande dell'Annulla). */
 .form-actions .btn {
   width: auto;
+  font-size: 1.05rem;
+  text-transform: none;
+  padding: 14px 22px;
+  margin-bottom: 0;
 }
 
-/* ---------- Report ---------- */
-.summary {
-  margin: 12px 0;
+/* ---------- Dashboard ---------- */
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+  margin: 14px 0 22px;
 }
 
-.summary ul {
-  margin: 6px 0 0 20px;
+.kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 16px 18px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-left: 5px solid var(--rosso);
+  border-radius: 10px;
 }
 
-/* ---------- Schermata PIN ---------- */
+.kpi-value {
+  font-family: var(--font-display);
+  font-size: 2.1rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--rosso);
+  font-variant-numeric: tabular-nums;
+}
+
+.kpi-label {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.dash-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.chart-card {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 18px;
+}
+
+.chart-card h3 {
+  margin: 0 0 14px;
+  font-size: 1.05rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+}
+
+/* Grafico a barre orizzontali. */
+.barchart {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.bar-row {
+  display: grid;
+  grid-template-columns: minmax(70px, 34%) 1fr auto;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.95rem;
+}
+
+.bar-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.bar-track {
+  background: rgba(45, 32, 12, 0.07);
+  border-radius: 999px;
+  height: 16px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--ambra-deep), var(--ambra));
+}
+
+.bar-value {
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--rosso);
+  min-width: 2ch;
+  text-align: right;
+}
+
+/* Grafico serie temporale (SVG). */
+.ts-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.ts-area { fill: rgba(242, 180, 65, 0.20); stroke: none; }
+.ts-line { fill: none; stroke: var(--rosso); stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
+.ts-dot { fill: var(--ambra); stroke: var(--rosso); stroke-width: 1.5; }
+.ts-axis { stroke: var(--border-strong); stroke-width: 1.5; }
+.ts-grid { stroke: var(--border); stroke-width: 1; stroke-dasharray: 3 4; }
+.ts-xlabel { fill: var(--muted); font-size: 12px; text-anchor: middle; font-family: var(--font-body); }
+.ts-ylabel { fill: var(--muted); font-size: 12px; text-anchor: end; font-family: var(--font-body); font-variant-numeric: tabular-nums; }
+
+/* ---------- Schermata PIN (gate) ---------- */
 .pin-gate {
   display: flex;
   justify-content: center;
@@ -463,16 +734,32 @@ body {
 }
 
 .pin-box {
+  position: relative;
   background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  padding: 28px;
+  box-shadow: var(--shadow-lift);
+  padding: 30px 28px;
   max-width: 360px;
   width: 100%;
   text-align: center;
+  overflow: hidden;
+}
+
+.pin-box::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--ambra);
 }
 
 .pin-box h2 {
+  font-size: 1.4rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
   margin-bottom: 8px;
 }
 
@@ -487,7 +774,7 @@ body {
   text-align: center;
   letter-spacing: 0.3em;
   padding: 14px;
-  border: 2px solid var(--border);
+  border: 2px solid var(--border-strong);
   border-radius: 10px;
   margin-bottom: 14px;
 }
@@ -511,40 +798,52 @@ body {
   .product-grid {
     grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
   }
+  .topbar-title h1 {
+    font-size: 1.4rem;
+  }
 }
 
-/* ---------- Estensioni v2: feste, magazzino ---------- */
+/* ---------- Estensioni: feste, magazzino ---------- */
 
-/* Input data: stesso stile degli altri campi del form. */
-.form-grid input[type="date"] {
-  font-size: 1rem;
-  padding: 12px;
-  border: 2px solid var(--border);
-  border-radius: 8px;
-  background: #fff;
-  color: var(--text);
-  width: 100%;
-}
-
-/* Campo che occupa l'intera larghezza della griglia form. */
 .form-grid label.full {
   grid-column: 1 / -1;
 }
 
-/* Badge "Festa attiva" nella topbar. */
+/* Badge "Festa aperta": una lampadina accesa nella topbar. */
 .event-badge {
-  display: inline-block;
-  margin-left: 12px;
-  padding: 4px 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 0;
+  padding: 5px 13px 5px 11px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.18);
-  color: #fff;
+  background: rgba(242, 180, 65, 0.16);
+  border: 1px solid rgba(242, 180, 65, 0.45);
+  color: #fdf0d6;
+  font-family: var(--font-body);
   font-size: 0.85rem;
   font-weight: 600;
+  letter-spacing: normal;
   vertical-align: middle;
 }
 
-/* Selettore festa nella sezione Prodotti. */
+.event-badge::before {
+  content: "";
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, #fff3cf 0 35%, var(--ambra) 70%, var(--ambra-deep));
+  box-shadow: 0 0 9px 2px rgba(242, 180, 65, 0.75);
+  flex: none;
+}
+
+/* Sul dettaglio festa il badge è su carta, non sul cielo: invertilo. */
+.admin-content .event-badge {
+  color: var(--ambra-deep);
+  background: rgba(242, 180, 65, 0.14);
+}
+
+/* Selettore festa inline. */
 .inline-select {
   display: inline-flex;
   align-items: center;
@@ -556,15 +855,30 @@ body {
 .inline-select select {
   font-size: 1rem;
   padding: 10px 12px;
-  border: 2px solid var(--border);
+  border: 2px solid var(--border-strong);
   border-radius: 8px;
   background: #fff;
   color: var(--text);
 }
 
-/* Riga della festa attiva evidenziata. */
+/* Riga intera cliccabile (elenco feste). */
+.data-table tr.row-clickable {
+  cursor: pointer;
+}
+
+.data-table tr.row-clickable:focus-visible {
+  outline: 3px solid var(--ambra);
+  outline-offset: -3px;
+}
+
+/* Riga della festa aperta: evidenziata come "accesa". */
 .data-table tr.row-active {
-  background: rgba(40, 167, 69, 0.12);
+  background: rgba(242, 180, 65, 0.16);
+  box-shadow: inset 4px 0 0 var(--rosso);
+}
+
+.data-table tr.row-active:hover {
+  background: rgba(242, 180, 65, 0.22);
 }
 
 .data-table tr.row-active td {
@@ -573,11 +887,195 @@ body {
 
 /* Articolo di magazzino esaurito. */
 .data-table tr.row-empty td {
-  color: var(--danger, #c0392b);
+  color: var(--rosso);
 }
 
-/* Piccola spaziatura tra pulsanti nelle celle azioni. */
+/* Spaziatura tra pulsanti nelle celle azioni. */
 .data-table td .btn-small {
   margin-right: 4px;
   margin-bottom: 2px;
+}
+
+/* ---------- Navigazione admin, modale, filtri ---------- */
+
+/* Gruppo sinistro della topbar: ingranaggio + titolo. */
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+/* Ingranaggio Impostazioni: pulsante tondo, tutto a sinistra. */
+.nav-gear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  flex: none;
+  border-radius: 50%;
+  color: #e9ecf5;
+  background: rgba(255, 255, 255, 0.10);
+  border: 1px solid transparent;
+  text-decoration: none;
+  transition: background 0.12s ease, transform 0.2s ease;
+}
+
+.nav-gear:hover {
+  background: rgba(255, 255, 255, 0.22);
+  transform: rotate(40deg);
+}
+
+.nav-gear.active {
+  background: var(--paper);
+  color: var(--night);
+  border-color: var(--ambra);
+}
+
+.admin-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.nav-link {
+  color: #e9ecf5;
+  text-decoration: none;
+  padding: 8px 15px;
+  border-radius: 999px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.95rem;
+  letter-spacing: 0.03em;
+  background: rgba(255, 255, 255, 0.10);
+  border: 1px solid transparent;
+}
+
+.nav-link:hover { background: rgba(255, 255, 255, 0.22); }
+
+.nav-link.active {
+  background: var(--paper);
+  color: var(--night);
+  border-color: var(--ambra);
+}
+
+/* Torna alla cassa: freccia ←, pulsante tondo ambra tutto a destra. */
+.nav-cassa {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border-radius: 50%;
+  background: var(--ambra);
+  color: var(--night);
+}
+.nav-cassa:hover { background: #ffc857; }
+
+/* Intestazione card con titolo + azione a destra. */
+.card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.card-head h2 {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+/* Nella testata, anche i pulsanti pieni restano compatti a destra. */
+.card-head .btn {
+  width: auto;
+  margin-bottom: 0;
+}
+
+/* Link nelle tabelle (nome festa). */
+.row-link {
+  color: var(--rosso);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+}
+.row-link:hover { text-decoration: underline; }
+
+/* Barra filtri (magazzino). */
+.filter-bar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 14px 0;
+}
+.filter-bar input[type="search"],
+.filter-bar select {
+  font-size: 1rem;
+  padding: 10px 12px;
+  border: 2px solid var(--border-strong);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--text);
+}
+.filter-bar input[type="search"] { flex: 1 1 220px; }
+.filter-bar input[type="search"]:focus,
+.filter-bar select:focus {
+  outline: none;
+  border-color: var(--rosso);
+}
+
+/* ---------- Modale ---------- */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(24, 34, 63, 0.55);
+  z-index: 1000;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 24px;
+  overflow-y: auto;
+}
+.modal-overlay.modal-open { display: flex; }
+
+.modal {
+  position: relative;
+  background: var(--surface);
+  border-radius: 14px;
+  padding: 26px 24px 24px;
+  width: 100%;
+  max-width: 520px;
+  box-shadow: var(--shadow-lift);
+  margin-top: 40px;
+  overflow: hidden;
+}
+.modal::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--rosso);
+}
+.modal h3 {
+  margin-top: 0;
+  font-size: 1.3rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.form-actions.full { grid-column: 1 / -1; }
+
+/* ---------- Rispetto delle preferenze di movimento ridotto ---------- */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+  }
 }

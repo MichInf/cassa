@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Magazzino - Gestione</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <script src="/static/admin-common.js" defer></script>
+  <script src="/static/magazzino.js" defer></script>
+</head>
+<body>
+  <main id="admin-content" class="admin-content hidden">
+    <section class="card">
+      <div class="card-head">
+        <h2>Magazzino</h2>
+        <button id="btn-new-stock" class="btn btn-print" type="button">+ Aggiungi prodotto</button>
+      </div>
+      <p class="hint">Inventario a parte, scollegato dalla cassa: le vendite NON
+        scalano il magazzino.</p>
+
+      <!-- Filtro prodotti -->
+      <div class="filter-bar">
+        <input id="filter-text" type="search" placeholder="Cerca per nome..." />
+        <select id="filter-category">
+          <option value="">Tutte le categorie</option>
+        </select>
+      </div>
+
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Articolo</th>
+              <th>Categoria</th>
+              <th>Quantita'</th>
+              <th>Unita'</th>
+              <th>Rettifica</th>
+              <th>Azioni</th>
+            </tr>
+          </thead>
+          <tbody id="stock-tbody">
+            <tr><td colspan="6">Caricamento...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modale: nuovo/modifica articolo -->
+  <div id="stock-modal" class="modal-overlay">
+    <div class="modal">
+      <h3 id="stock-form-title">Nuovo articolo</h3>
+      <form id="stock-form" class="form-grid">
+        <input type="hidden" id="stock-id" />
+        <label>Nome <input id="st-name" type="text" required placeholder="Es. Bottiglia Gin" /></label>
+        <label>Categoria <input id="st-category" type="text" value="Generale" /></label>
+        <label>Quantita' <input id="st-qty" type="number" step="any" value="0" /></label>
+        <label>Unita' <input id="st-unit" type="text" value="pz" /></label>
+        <label class="full">Note <input id="st-note" type="text" /></label>
+        <div class="form-actions full">
+          <button class="btn btn-print" type="submit">Salva articolo</button>
+          <button id="st-cancel" class="btn btn-cancel" type="button">Annulla</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

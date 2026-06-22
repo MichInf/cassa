@@ -149,15 +149,15 @@ def get_active_event(conn: sqlite3.Connection = Depends(get_conn)):
 
 @app.post("/api/events", response_model=EventOut, dependencies=[Depends(require_pin)])
 def create_event(payload: EventIn, conn: sqlite3.Connection = Depends(get_conn)):
-    # La prima festa creata diventa subito attiva.
-    has_any = conn.execute("SELECT COUNT(*) AS n FROM events").fetchone()["n"] > 0
-    active = 0 if has_any else 1
+    # Creare una festa la "apre": diventa l'unica attiva (chiude le altre).
     cur = conn.execute(
-        "INSERT INTO events (name, note, start_date, active) VALUES (?, ?, ?, ?)",
-        (payload.name, payload.note, payload.start_date, active),
+        "INSERT INTO events (name, note, start_date, active) VALUES (?, ?, ?, 1)",
+        (payload.name, payload.note, payload.start_date),
     )
+    new_id = cur.lastrowid
+    conn.execute("UPDATE events SET active = 0 WHERE id != ?", (new_id,))
     conn.commit()
-    row = conn.execute("SELECT * FROM events WHERE id = ?", (cur.lastrowid,)).fetchone()
+    row = conn.execute("SELECT * FROM events WHERE id = ?", (new_id,)).fetchone()
     return _event_out(row)
 
 
@@ -184,6 +184,18 @@ def activate_event(event_id: int, conn: sqlite3.Connection = Depends(get_conn)):
     # Una sola festa attiva alla volta.
     conn.execute("UPDATE events SET active = 0")
     conn.execute("UPDATE events SET active = 1 WHERE id = ?", (event_id,))
+    conn.commit()
+    row = conn.execute("SELECT * FROM events WHERE id = ?", (event_id,)).fetchone()
+    return _event_out(row)
+
+
+@app.post("/api/events/{event_id}/close", response_model=EventOut,
+          dependencies=[Depends(require_pin)])
+def close_event(event_id: int, conn: sqlite3.Connection = Depends(get_conn)):
+    """Chiude la festa: resta nello storico ma la cassa non la usa piu'."""
+    if conn.execute("SELECT 1 FROM events WHERE id = ?", (event_id,)).fetchone() is None:
+        raise HTTPException(status_code=404, detail="Festa non trovata")
+    conn.execute("UPDATE events SET active = 0 WHERE id = ?", (event_id,))
     conn.commit()
     row = conn.execute("SELECT * FROM events WHERE id = ?", (event_id,)).fetchone()
     return _event_out(row)
@@ -501,6 +513,32 @@ def summary(
     }
 
 
+@app.get("/api/reports/timeseries")
+def reports_timeseries(
+    event_id: int | None = Query(default=None),
+    conn: sqlite3.Connection = Depends(get_conn),
+):
+    """Ordini e incasso raggruppati per ora (andamento nel tempo)."""
+    eid = event_id if event_id is not None else _active_event_id(conn)
+    where = "WHERE event_id = ?" if eid is not None else ""
+    params: tuple = (eid,) if eid is not None else ()
+    rows = conn.execute(
+        f"SELECT strftime('%Y-%m-%d %H:00', created_at) AS bucket, "
+        f"COUNT(*) AS orders, COALESCE(SUM(total_cents), 0) AS revenue_cents "
+        f"FROM orders {where} GROUP BY bucket ORDER BY bucket ASC",
+        params,
+    ).fetchall()
+    return {
+        "event_id": eid,
+        "granularity": "hour",
+        "points": [
+            {"bucket": r["bucket"], "orders": r["orders"],
+             "revenue_cents": r["revenue_cents"]}
+            for r in rows
+        ],
+    }
+
+
 # --- Settings / sistema -------------------------------------------------------
 
 @app.get("/api/settings")
@@ -564,8 +602,24 @@ def cassa_page():
 
 
 @app.get("/admin")
-def admin_page():
-    return FileResponse(STATIC_DIR / "admin.html")
+@app.get("/admin/feste")
+def admin_feste_page():
+    return FileResponse(STATIC_DIR / "feste.html")
+
+
+@app.get("/admin/festa/{event_id}")
+def admin_festa_detail_page(event_id: int):
+    return FileResponse(STATIC_DIR / "festa_detail.html")
+
+
+@app.get("/admin/magazzino")
+def admin_magazzino_page():
+    return FileResponse(STATIC_DIR / "magazzino.html")
+
+
+@app.get("/admin/impostazioni")
+def admin_settings_page():
+    return FileResponse(STATIC_DIR / "impostazioni.html")
 
 
 if STATIC_DIR.exists():

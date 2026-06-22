@@ -110,7 +110,11 @@ def get_connection(db_path: str | None = None) -> sqlite3.Connection:
     parent = Path(path).parent
     if str(parent) and not parent.exists():
         parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(path)
+    # check_same_thread=False: FastAPI esegue le dependency a generatore nel
+    # threadpool di anyio, dove apertura (questo thread) e chiusura (conn.close()
+    # nel finally) possono finire su thread diversi. Ogni richiesta usa comunque
+    # una connessione propria e mai condivisa in parallelo, quindi è sicuro.
+    conn = sqlite3.connect(path, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
     return conn

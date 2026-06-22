@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Feste - Gestione</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <script src="/static/admin-common.js" defer></script>
+  <script src="/static/feste.js" defer></script>
+</head>
+<body>
+  <main id="admin-content" class="admin-content hidden">
+    <section class="card">
+      <div class="card-head">
+        <h2>Feste</h2>
+        <button id="btn-new-event" class="btn btn-print" type="button">+ Nuova festa</button>
+      </div>
+      <p class="hint">Una sola festa aperta alla volta: la cassa lavora sulla festa
+        aperta. Clicca una riga per entrare e gestire prodotti e report.</p>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Stato</th>
+              <th>Nome</th>
+              <th>Data</th>
+              <th>Note</th>
+            </tr>
+          </thead>
+          <tbody id="events-tbody">
+            <tr><td colspan="4">Caricamento...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modale: nuova festa -->
+  <div id="event-modal" class="modal-overlay">
+    <div class="modal">
+      <h3>Nuova festa</h3>
+      <form id="event-form" class="form-grid">
+        <label>Nome
+          <input id="e-name" type="text" required placeholder="Es. Sagra 2026" />
+        </label>
+        <label>Data
+          <input id="e-date" type="date" />
+        </label>
+        <label class="full">Note
+          <input id="e-note" type="text" />
+        </label>
+        <div class="form-actions full">
+          <button class="btn btn-print" type="submit">Crea e apri festa</button>
+          <button id="e-cancel" class="btn btn-cancel" type="button">Annulla</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</body>
+</html>
