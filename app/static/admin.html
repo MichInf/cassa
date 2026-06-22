@@ -10,6 +10,7 @@
   <header class="topbar">
     <div class="topbar-title">
       <h1>Gestione</h1>
+      <span id="active-event-badge" class="event-badge hidden"></span>
     </div>
     <a class="link-admin" href="/">&larr; Cassa</a>
   </header>
@@ -29,9 +30,53 @@
   <!-- Contenuto gestione (nascosto finche' il PIN non e' inserito) -->
   <main id="admin-content" class="admin-content hidden">
 
-    <!-- ============ PRODOTTI ============ -->
+    <!-- ============ FESTE ============ -->
+    <section class="card">
+      <h2>Feste</h2>
+      <p class="hint">Una sola festa puo' essere attiva: cassa e report lavorano
+        sulla festa attiva.</p>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Stato</th>
+              <th>Nome</th>
+              <th>Data</th>
+              <th>Note</th>
+              <th>Azioni</th>
+            </tr>
+          </thead>
+          <tbody id="events-tbody">
+            <tr><td colspan="5">Caricamento...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 id="event-form-title">Nuova festa</h3>
+      <form id="event-form" class="form-grid">
+        <input type="hidden" id="event-id" />
+        <label>Nome
+          <input id="e-name" type="text" required placeholder="Es. Sagra 2026" />
+        </label>
+        <label>Data
+          <input id="e-date" type="date" />
+        </label>
+        <label class="full">Note
+          <input id="e-note" type="text" />
+        </label>
+        <div class="form-actions">
+          <button class="btn btn-print" type="submit">Salva festa</button>
+          <button id="e-reset" class="btn btn-cancel" type="button">Pulisci</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- ============ PRODOTTI (per festa) ============ -->
     <section class="card">
       <h2>Prodotti</h2>
+      <label class="inline-select">Festa:
+        <select id="product-event-select"></select>
+      </label>
       <div class="table-wrap">
         <table class="data-table">
           <thead>
@@ -75,15 +120,60 @@
       </form>
     </section>
 
+    <!-- ============ MAGAZZINO ============ -->
+    <section class="card">
+      <h2>Magazzino</h2>
+      <p class="hint">Inventario a parte, scollegato dalla cassa: le vendite NON
+        scalano il magazzino. Es. "Bottiglia di Gin".</p>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Articolo</th>
+              <th>Categoria</th>
+              <th>Quantita'</th>
+              <th>Unita'</th>
+              <th>Rettifica</th>
+              <th>Azioni</th>
+            </tr>
+          </thead>
+          <tbody id="stock-tbody">
+            <tr><td colspan="6">Caricamento...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 id="stock-form-title">Nuovo articolo</h3>
+      <form id="stock-form" class="form-grid">
+        <input type="hidden" id="stock-id" />
+        <label>Nome
+          <input id="st-name" type="text" required placeholder="Es. Bottiglia Gin" />
+        </label>
+        <label>Categoria
+          <input id="st-category" type="text" value="Generale" />
+        </label>
+        <label>Quantita'
+          <input id="st-qty" type="number" step="any" value="0" />
+        </label>
+        <label>Unita'
+          <input id="st-unit" type="text" value="pz" />
+        </label>
+        <label class="full">Note
+          <input id="st-note" type="text" />
+        </label>
+        <div class="form-actions">
+          <button class="btn btn-print" type="submit">Salva articolo</button>
+          <button id="st-reset" class="btn btn-cancel" type="button">Pulisci</button>
+        </div>
+      </form>
+    </section>
+
     <!-- ============ CONFIGURAZIONE ============ -->
     <section class="card">
       <h2>Configurazione</h2>
       <form id="settings-form" class="form-grid">
         <label>Nome associazione
           <input id="s-association" type="text" />
-        </label>
-        <label>Nome evento
-          <input id="s-event" type="text" />
         </label>
         <label>Messaggio scontrino (footer)
           <input id="s-footer" type="text" />
@@ -106,6 +196,7 @@
     <!-- ============ REPORT ============ -->
     <section class="card">
       <h2>Report</h2>
+      <p class="hint">Riferiti alla festa attiva.</p>
       <p><a class="btn btn-secondary" href="/api/reports/sales.csv">Scarica CSV vendite</a></p>
       <div id="summary" class="summary">
         <p>Caricamento riepilogo...</p>
@@ -120,9 +211,9 @@
         <button id="btn-test-print" class="btn btn-secondary" type="button">Test stampa</button>
       </p>
       <p>
-        <button id="btn-reset" class="btn btn-danger" type="button">RESET dati festa</button>
+        <button id="btn-reset" class="btn btn-danger" type="button">RESET ordini festa attiva</button>
       </p>
-      <p class="hint">Il reset azzera tutti gli ordini (viene creato un backup lato server).</p>
+      <p class="hint">Il reset azzera gli ordini della festa attiva (viene creato un backup lato server).</p>
     </section>
   </main>
 

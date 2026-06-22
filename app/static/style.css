@@ -512,3 +512,72 @@ body {
     grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
   }
 }
+
+/* ---------- Estensioni v2: feste, magazzino ---------- */
+
+/* Input data: stesso stile degli altri campi del form. */
+.form-grid input[type="date"] {
+  font-size: 1rem;
+  padding: 12px;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--text);
+  width: 100%;
+}
+
+/* Campo che occupa l'intera larghezza della griglia form. */
+.form-grid label.full {
+  grid-column: 1 / -1;
+}
+
+/* Badge "Festa attiva" nella topbar. */
+.event-badge {
+  display: inline-block;
+  margin-left: 12px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  vertical-align: middle;
+}
+
+/* Selettore festa nella sezione Prodotti. */
+.inline-select {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.inline-select select {
+  font-size: 1rem;
+  padding: 10px 12px;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--text);
+}
+
+/* Riga della festa attiva evidenziata. */
+.data-table tr.row-active {
+  background: rgba(40, 167, 69, 0.12);
+}
+
+.data-table tr.row-active td {
+  font-weight: 600;
+}
+
+/* Articolo di magazzino esaurito. */
+.data-table tr.row-empty td {
+  color: var(--danger, #c0392b);
+}
+
+/* Piccola spaziatura tra pulsanti nelle celle azioni. */
+.data-table td .btn-small {
+  margin-right: 4px;
+  margin-bottom: 2px;
+}

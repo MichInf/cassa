@@ -138,5 +138,47 @@ pytest con DB temporaneo:
   imposta `printed=1`.
 
 ## Fuori ambito (YAGNI per v1)
-Login operatori, metodo pagamento, magazzino, comanda cucina/doppia stampa, PWA
+Login operatori, metodo pagamento, comanda cucina/doppia stampa, PWA
 offline, coda stampa, multi-cassa con lock. Restano nella roadmap (Fase 3).
+
+---
+
+## Revisione v2 (2026-06-22) — Feste + Magazzino
+
+Aggiunte richieste dopo la v1. Cambiano lo schema DB.
+
+### Modello dati
+- **Feste (events)**: multi-festa, **una sola attiva** alla volta. Attivare una
+  festa disattiva le altre. Campi: `id, name, note, start_date, active, created_at`.
+- **Prodotti cassa**: **specifici per festa** → `products.event_id` (FK events).
+  La cassa mostra i prodotti della festa attiva; gli ordini sono legati alla
+  festa attiva al momento della creazione (`orders.event_id`).
+- **Magazzino (stock_items)**: lista **separata e scollegata** dalla cassa,
+  **globale** (non per festa). Es. "Bottiglia di Gin". Gestione **manuale**:
+  vendere un prodotto cassa NON scala il magazzino. Campi:
+  `id, name, category, unit, quantity, note, updated_at`. Operazioni:
+  CRUD + rettifica (`adjust` con delta +/-).
+
+### API aggiunte
+- Feste: `GET /api/events`, `GET /api/events/active`, `POST /api/events` (PIN),
+  `PUT /api/events/{id}` (PIN), `DELETE /api/events/{id}` (PIN),
+  `POST /api/events/{id}/activate` (PIN).
+- Prodotti: ora filtrati per festa. `GET /api/products` → prodotti della festa
+  attiva; `GET /api/products?event_id=N` per l'admin. `POST` richiede `event_id`
+  (default: festa attiva).
+- Ordini/report: scopati sulla festa attiva (con filtro `event_id` opzionale).
+  Lo scontrino mostra il nome della festa attiva.
+- Magazzino: `GET /api/stock`, `POST /api/stock` (PIN), `PUT /api/stock/{id}`
+  (PIN), `DELETE /api/stock/{id}` (PIN), `POST /api/stock/{id}/adjust` (PIN).
+
+### Comportamento cassa
+Se non esiste una festa attiva, la cassa avvisa e disabilita la vendita.
+
+### Migrazione
+DB pre-produzione: `init` crea le nuove tabelle, aggiunge le colonne `event_id`
+mancanti (ALTER), crea una festa di default attiva e vi assegna prodotti/ordini
+esistenti. Niente perdita dati.
+
+### Admin riorganizzato (sezioni)
+Feste (crea/attiva/chiudi), Prodotti (della festa selezionata), Magazzino,
+Configurazione, Report, Manutenzione.

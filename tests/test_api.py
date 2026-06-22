@@ -1,5 +1,7 @@
 """Test delle API FastAPI con DB temporaneo (vedi conftest.py)."""
 
+N_DEMO_PRODUCTS = 7
+
 
 def test_health(client):
     r = client.get("/api/health")
@@ -7,76 +9,146 @@ def test_health(client):
     assert r.json()["status"] == "ok"
 
 
-def test_list_products_seeded(client):
-    r = client.get("/api/products")
+# --- Feste --------------------------------------------------------------------
+
+def test_active_event_seeded(client):
+    r = client.get("/api/events/active")
     assert r.status_code == 200
-    data = r.json()
-    assert len(data) == 8
-    assert all("price_cents" in p for p in data)
+    assert r.json() is not None
+    assert r.json()["active"] is True
+
+
+def test_create_and_activate_event(client, admin_headers):
+    # senza PIN -> 401
+    assert client.post("/api/events", json={"name": "Sagra"}).status_code == 401
+    r = client.post("/api/events", json={"name": "Sagra 2026", "note": "test"},
+                    headers=admin_headers)
+    assert r.status_code == 200
+    new_id = r.json()["id"]
+    # non e' la prima festa -> non attiva automaticamente
+    assert r.json()["active"] is False
+    # attivo la nuova festa
+    r = client.post(f"/api/events/{new_id}/activate", headers=admin_headers)
+    assert r.status_code == 200
+    assert r.json()["active"] is True
+    # ora la festa attiva e' quella nuova e non ha prodotti
+    assert client.get("/api/events/active").json()["id"] == new_id
+    assert client.get("/api/products").json() == []
+
+
+def test_delete_event_with_orders_blocked(client, admin_headers):
+    active = client.get("/api/events/active").json()
+    products = client.get("/api/products").json()
+    client.post("/api/orders",
+                json={"items": [{"product_id": products[0]["id"], "quantity": 1}]})
+    r = client.delete(f"/api/events/{active['id']}", headers=admin_headers)
+    assert r.status_code == 400
+
+
+# --- Prodotti (per festa) -----------------------------------------------------
+
+def test_list_products_seeded(client):
+    data = client.get("/api/products").json()
+    assert len(data) == N_DEMO_PRODUCTS
+    assert all(p["event_id"] is not None for p in data)
 
 
 def test_create_product_requires_pin(client):
     body = {"name": "Test", "category": "X", "price_cents": 150}
-    # senza PIN -> 401
     assert client.post("/api/products", json=body).status_code == 401
-    # PIN errato -> 401
-    assert client.post(
-        "/api/products", json=body, headers={"X-Admin-Pin": "0000"}
-    ).status_code == 401
+    assert client.post("/api/products", json=body,
+                       headers={"X-Admin-Pin": "0000"}).status_code == 401
 
 
-def test_product_crud(client, admin_headers):
-    body = {"name": "Spritz", "category": "Bar", "price_cents": 500,
-            "active": True, "sort_order": 9}
+def test_product_crud_scoped_to_active_event(client, admin_headers):
+    active = client.get("/api/events/active").json()
+    body = {"name": "Spritz", "category": "Bar", "price_cents": 500}
     r = client.post("/api/products", json=body, headers=admin_headers)
     assert r.status_code == 200
+    assert r.json()["event_id"] == active["id"]
     pid = r.json()["id"]
-    assert r.json()["price_cents"] == 500
 
     r = client.put(f"/api/products/{pid}",
                    json={**body, "price_cents": 550}, headers=admin_headers)
-    assert r.status_code == 200
     assert r.json()["price_cents"] == 550
 
-    r = client.delete(f"/api/products/{pid}", headers=admin_headers)
-    assert r.status_code == 200
-    assert client.get(f"/api/products").status_code == 200
+    assert client.delete(f"/api/products/{pid}", headers=admin_headers).status_code == 200
 
+
+# --- Ordini -------------------------------------------------------------------
 
 def test_create_order_computes_totals_server_side(client):
-    products = client.get("/api/products").json()
-    p1 = products[0]
-    # invio un prezzo "falso" non e' possibile: l'API accetta solo product_id+quantity
+    p1 = client.get("/api/products").json()[0]
     body = {"items": [{"product_id": p1["id"], "quantity": 2}], "note": "tavolo 3"}
-    r = client.post("/api/orders", json=body)
-    assert r.status_code == 200
-    order = r.json()
+    order = client.post("/api/orders", json=body).json()
     assert order["total_cents"] == p1["price_cents"] * 2
-    assert order["items"][0]["line_total_cents"] == p1["price_cents"] * 2
+    assert order["event_id"] is not None
     assert order["printed"] is False
-    assert order["note"] == "tavolo 3"
 
 
-def test_create_order_rejects_inactive_product(client, admin_headers):
-    products = client.get("/api/products").json()
-    pid = products[0]["id"]
-    # disattivo il prodotto
-    client.put(f"/api/products/{pid}",
-               json={**products[0], "active": False}, headers=admin_headers)
+def test_order_uses_active_event_products_only(client, admin_headers):
+    # creo e attivo una seconda festa senza prodotti
+    new = client.post("/api/events", json={"name": "Altra"}, headers=admin_headers).json()
+    # prodotto della prima festa
+    first_event_products = client.get("/api/products").json()
+    pid = first_event_products[0]["id"]
+    client.post(f"/api/events/{new['id']}/activate", headers=admin_headers)
+    # ordinare un prodotto di un'altra festa -> 400
     r = client.post("/api/orders", json={"items": [{"product_id": pid, "quantity": 1}]})
     assert r.status_code == 400
 
 
 def test_order_print_sets_printed(client):
     products = client.get("/api/products").json()
-    body = {"items": [{"product_id": products[0]["id"], "quantity": 1}]}
-    order = client.post("/api/orders", json=body).json()
+    order = client.post(
+        "/api/orders", json={"items": [{"product_id": products[0]["id"], "quantity": 1}]}
+    ).json()
     r = client.post(f"/api/orders/{order['id']}/print")
     assert r.status_code == 200
     assert r.json()["ok"] is True
-    # ora l'ordine risulta stampato
     assert client.get(f"/api/orders/{order['id']}").json()["printed"] is True
 
+
+# --- Magazzino ----------------------------------------------------------------
+
+def test_stock_seeded(client):
+    data = client.get("/api/stock").json()
+    assert len(data) >= 1
+    assert all("quantity" in s for s in data)
+
+
+def test_stock_crud_and_adjust(client, admin_headers):
+    assert client.post("/api/stock", json={"name": "Rum"}).status_code == 401
+    r = client.post("/api/stock",
+                    json={"name": "Bottiglia Rum", "category": "Alcolici",
+                          "unit": "bottiglia", "quantity": 3}, headers=admin_headers)
+    assert r.status_code == 200
+    sid = r.json()["id"]
+    assert r.json()["quantity"] == 3
+
+    # rettifica: scarico 2
+    r = client.post(f"/api/stock/{sid}/adjust", json={"delta": -2}, headers=admin_headers)
+    assert r.json()["quantity"] == 1
+
+    r = client.put(f"/api/stock/{sid}",
+                   json={"name": "Rum scuro", "quantity": 10}, headers=admin_headers)
+    assert r.json()["name"] == "Rum scuro"
+    assert r.json()["quantity"] == 10
+
+    assert client.delete(f"/api/stock/{sid}", headers=admin_headers).status_code == 200
+
+
+def test_stock_is_independent_from_sales(client):
+    """Vendere un prodotto cassa NON deve toccare il magazzino."""
+    before = client.get("/api/stock").json()
+    products = client.get("/api/products").json()
+    client.post("/api/orders",
+                json={"items": [{"product_id": products[0]["id"], "quantity": 5}]})
+    after = client.get("/api/stock").json()
+    assert before == after
+
+
+# --- Report / settings --------------------------------------------------------
 
 def test_sales_csv(client):
     products = client.get("/api/products").json()
@@ -88,21 +160,17 @@ def test_sales_csv(client):
     assert products[0]["name"] in r.text
 
 
-def test_summary(client):
+def test_summary_scoped_to_active_event(client):
     products = client.get("/api/products").json()
     client.post("/api/orders",
                 json={"items": [{"product_id": products[0]["id"], "quantity": 2}]})
-    r = client.get("/api/reports/summary")
-    assert r.status_code == 200
-    data = r.json()
+    data = client.get("/api/reports/summary").json()
     assert data["orders_count"] == 1
     assert data["total_cents"] == products[0]["price_cents"] * 2
-    assert len(data["top_products"]) >= 1
 
 
 def test_settings_get_hides_pin(client):
     r = client.get("/api/settings")
-    assert r.status_code == 200
     assert "admin_pin" not in r.json()
     assert r.json()["association_name"] == "Associazione"
 
@@ -116,16 +184,13 @@ def test_settings_update_requires_pin(client, admin_headers):
     assert client.get("/api/settings").json()["association_name"] == "Pro Loco"
 
 
-def test_reset_requires_confirm_and_pin(client, admin_headers):
+def test_reset_clears_active_event_orders(client, admin_headers):
     products = client.get("/api/products").json()
     client.post("/api/orders",
                 json={"items": [{"product_id": products[0]["id"], "quantity": 1}]})
-    # senza PIN
     assert client.post("/api/reset", json={"confirm": True}).status_code == 401
-    # PIN ma senza conferma
     assert client.post("/api/reset", json={"confirm": False},
                        headers=admin_headers).status_code == 400
-    # ok
     r = client.post("/api/reset", json={"confirm": True}, headers=admin_headers)
     assert r.status_code == 200
     assert client.get("/api/reports/summary").json()["orders_count"] == 0

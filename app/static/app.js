@@ -39,21 +39,37 @@ function showToast(message, isError) {
 // Caricamento e rendering prodotti
 // ---------------------------------------------------------------------------
 
-// Carica le impostazioni per personalizzare intestazione.
+// Carica nome associazione (settings) e nome festa attiva (events).
 async function loadSettings() {
   try {
     const res = await fetch("/api/settings");
-    if (!res.ok) return;
-    const s = await res.json();
-    if (s.event_name) {
-      document.getElementById("event-title").textContent = s.event_name;
-      document.title = "Cassa - " + s.event_name;
-    }
-    if (s.association_name) {
-      document.getElementById("association-name").textContent = s.association_name;
+    if (res.ok) {
+      const s = await res.json();
+      if (s.association_name) {
+        document.getElementById("association-name").textContent = s.association_name;
+      }
     }
   } catch (err) {
     // Le impostazioni sono opzionali per la cassa: ignoriamo eventuali errori.
+  }
+  await loadActiveEvent();
+}
+
+// Carica la festa attiva: ne mostra il nome o avvisa se non esiste.
+async function loadActiveEvent() {
+  try {
+    const res = await fetch("/api/events/active");
+    if (!res.ok) return;
+    const ev = await res.json();
+    if (ev && ev.name) {
+      document.getElementById("event-title").textContent = ev.name;
+      document.title = "Cassa - " + ev.name;
+    } else {
+      document.getElementById("event-title").textContent = "Nessuna festa attiva";
+      showToast("Nessuna festa attiva: aprila dalla Gestione per vendere.", true);
+    }
+  } catch (err) {
+    // ignora: la cassa resta usabile se il server risponde altrove
   }
 }
 
