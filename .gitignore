@@ -1,0 +1,17 @@
+# Virtualenv
+.venv/
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Database SQLite (dati operativi locali, generati a runtime)
+data/*.sqlite3
+data/*.sqlite3-*
+
+# Backup del database
+backups/
+
+# Log
+*.log
