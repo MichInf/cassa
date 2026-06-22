@@ -1,0 +1,16 @@
+[Unit]
+Description=Festa Cassa Web Server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+WorkingDirectory=/opt/festa-cassa
+ExecStart=/opt/festa-cassa/.venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000
+Restart=always
+RestartSec=3
+User=YOUR_USER
+Environment=PYTHONUNBUFFERED=1
+Environment=FESTA_PRINTER_MODE=usb
+
+[Install]
+WantedBy=multi-user.target

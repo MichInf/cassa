@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cassa - Festa</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <!-- Intestazione: titolo evento + link alla gestione -->
+  <header class="topbar">
+    <div class="topbar-title">
+      <h1 id="event-title">Cassa</h1>
+      <span id="association-name" class="subtitle"></span>
+    </div>
+    <a class="link-admin" href="/admin">Gestione &rarr;</a>
+  </header>
+
+  <!-- Layout principale: prodotti a sinistra, carrello a destra -->
+  <main class="cassa-layout">
+    <!-- Griglia prodotti raggruppati per categoria -->
+    <section id="products" class="products-area" aria-label="Prodotti">
+      <p class="loading">Caricamento prodotti...</p>
+    </section>
+
+    <!-- Carrello -->
+    <aside class="cart-area" aria-label="Carrello">
+      <h2 class="cart-title">Carrello</h2>
+      <div id="cart-lines" class="cart-lines">
+        <p class="cart-empty">Nessun prodotto selezionato.</p>
+      </div>
+
+      <div class="cart-total">
+        <span>TOTALE</span>
+        <span id="cart-total-value">0.00 &euro;</span>
+      </div>
+
+      <button id="btn-print" class="btn btn-print" type="button">STAMPA SCONTRINO</button>
+      <button id="btn-cancel" class="btn btn-cancel" type="button">Annulla ordine</button>
+    </aside>
+  </main>
+
+  <!-- Area messaggi temporanei (toast) -->
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

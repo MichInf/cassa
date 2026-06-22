@@ -1,0 +1,4 @@
+# Forza LF sui file che girano su Linux (Arduino UNO Q / Debian).
+*.sh text eol=lf
+*.service text eol=lf
+*.py text eol=lf
