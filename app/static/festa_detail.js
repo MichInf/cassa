@@ -43,6 +43,21 @@ function renderEventHeader() {
   }
 }
 
+async function deleteEvent() {
+  if (!currentEvent) return;
+  const msg = currentEvent.active
+    ? 'La festa "' + currentEvent.name + '" e\' ancora aperta. Chiudila prima di eliminarla.'
+    : 'Eliminare definitivamente la festa "' + currentEvent.name + '"? L\'operazione non e\' reversibile.';
+  if (currentEvent.active) { Admin.toast(msg, true); return; }
+  if (!confirm(msg)) return;
+  try {
+    const res = await Admin.fetch("/api/events/" + EVENT_ID, { method: "DELETE" });
+    if (!res.ok) { Admin.toast("Errore: " + (await Admin.readError(res)), true); return; }
+    Admin.toast("Festa eliminata.", false);
+    setTimeout(function () { window.location.href = "/admin/feste"; }, 800);
+  } catch (err) { Admin.toast(err.message, true); }
+}
+
 async function toggleOpen() {
   if (!currentEvent) return;
   const url = currentEvent.active
@@ -273,6 +288,7 @@ function initPage() {
   loadProducts();
   loadDashboard();
   document.getElementById("btn-toggle-open").addEventListener("click", toggleOpen);
+  document.getElementById("btn-delete-event").addEventListener("click", deleteEvent);
   document.getElementById("btn-new-product").addEventListener("click", function () {
     openProductModal(null);
   });

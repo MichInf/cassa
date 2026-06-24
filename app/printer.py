@@ -9,6 +9,7 @@ decimali e il punto come separatore (es. 800 -> "8.00 EUR").
 """
 from __future__ import annotations
 
+import os
 import unicodedata
 from datetime import datetime
 
@@ -64,8 +65,13 @@ def get_printer(settings: dict):
 
     - "usb"  -> stampante USB ESC/POS reale.
     - altro  -> Dummy() (sviluppo/test): accumula l'output in memoria.
+
+    L'env var FESTA_PRINTER_MODE ha la precedenza sul valore nel DB, in modo
+    che il servizio systemd (Environment=FESTA_PRINTER_MODE=usb) funzioni
+    correttamente anche su DB inizializzati in modalita' dummy.
     """
-    if settings.get("printer_mode") == "usb":
+    mode = os.environ.get("FESTA_PRINTER_MODE") or settings.get("printer_mode")
+    if mode == "usb":
         return Usb(_USB_VID, _USB_PID, in_ep=_USB_IN_EP, out_ep=_USB_OUT_EP)
     return Dummy()
 
@@ -145,18 +151,26 @@ def print_order(order: dict, settings: dict) -> dict:
     stampante reale e' None. Le eccezioni sono catturate e riportate in
     ``detail`` con ``ok=False`` (mai sollevate).
     """
-    mode = settings.get("printer_mode")
+    mode = os.environ.get("FESTA_PRINTER_MODE") or settings.get("printer_mode")
+    p = None
     try:
         p = get_printer(settings)
         render_receipt(p, order, settings)
         return {"ok": True, "mode": mode, "detail": _dummy_text(p)}
     except Exception as exc:  # noqa: BLE001  (vogliamo non sollevare mai)
         return {"ok": False, "mode": mode, "detail": str(exc)}
+    finally:
+        if p is not None:
+            try:
+                p.close()
+            except Exception:  # noqa: BLE001
+                pass
 
 
 def test_print(settings: dict) -> dict:
     """Stampa una breve riga di prova e ritorna lo stesso formato di print_order."""
-    mode = settings.get("printer_mode")
+    mode = os.environ.get("FESTA_PRINTER_MODE") or settings.get("printer_mode")
+    p = None
     try:
         p = get_printer(settings)
         p.set(align="center", bold=True, width=1, height=1)
@@ -165,3 +179,9 @@ def test_print(settings: dict) -> dict:
         return {"ok": True, "mode": mode, "detail": _dummy_text(p)}
     except Exception as exc:  # noqa: BLE001
         return {"ok": False, "mode": mode, "detail": str(exc)}
+    finally:
+        if p is not None:
+            try:
+                p.close()
+            except Exception:  # noqa: BLE001
+                pass
