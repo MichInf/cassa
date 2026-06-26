@@ -6,7 +6,11 @@
 "use strict";
 
 (function () {
-  const PIN_KEY = "festa_admin_pin";
+  // Il PIN vive solo in memoria per la pagina corrente: NON viene persistito
+  // (niente sessionStorage/localStorage). Cosi' ogni volta che si entra in
+  // Gestione — anche tornando dalla cassa o ricaricando — il PIN e' richiesto
+  // di nuovo. E' una scelta voluta per tenere l'area admin piu' protetta.
+  let adminPin = "";
 
   // Voci di navigazione principali (Impostazioni è l'ingranaggio a sinistra,
   // la Cassa è la freccia a destra: vedi buildChrome).
@@ -46,9 +50,9 @@
     return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   };
 
-  Admin.getPin = function () { return sessionStorage.getItem(PIN_KEY) || ""; };
-  Admin.setPin = function (pin) { sessionStorage.setItem(PIN_KEY, pin); };
-  Admin.clearPin = function () { sessionStorage.removeItem(PIN_KEY); };
+  Admin.getPin = function () { return adminPin; };
+  Admin.setPin = function (pin) { adminPin = pin; };
+  Admin.clearPin = function () { adminPin = ""; };
 
   Admin.toast = function (message, isError) {
     const toast = document.getElementById("toast");
@@ -214,11 +218,9 @@
 
   document.addEventListener("DOMContentLoaded", function () {
     buildChrome();
-    if (Admin.getPin()) {
-      document.getElementById("pin-input").value = Admin.getPin();
-      tryUnlock();
-    } else {
-      showGate();
-    }
+    // Il PIN non e' mai memorizzato: si parte sempre dal gate, quindi ogni
+    // accesso a Gestione richiede di reinserirlo.
+    showGate();
+    document.getElementById("pin-input").focus();
   });
 })();

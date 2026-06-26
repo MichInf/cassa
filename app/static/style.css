@@ -1073,6 +1073,113 @@ hr {
 
 .form-actions.full { grid-column: 1 / -1; }
 
+/* ---------- Mobile-first: gestione tascabile (smartphone) ----------
+   La cassa gira su tablet (vedi il breakpoint 820px sopra); la gestione vive
+   sul telefono. Qui sotto, sotto i 600px, le tabelle fitte diventano schede
+   impilate e i controlli passano a tutta larghezza con bersagli touch ampi.
+   Palette, tipografia e impianto restano quelli del desktop: cambia solo come
+   si dispongono sullo schermo stretto. */
+@media (max-width: 600px) {
+  body { font-size: 17px; }
+
+  /* Topbar: titolo (e freccia) in alto, navigazione su una riga propria. */
+  .topbar {
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 12px 14px 22px;
+  }
+  .topbar-title h1 { font-size: 1.35rem; }
+  .admin-nav { width: 100%; justify-content: flex-start; }
+
+  /* Contenuto admin a pieno schermo, con margini minimi. */
+  .admin-content { padding: 16px 12px 32px; }
+  .card { padding: 16px 14px; }
+  .card h2 { font-size: 1.25rem; }
+
+  /* Testata card: titolo sopra, azioni sotto a tutta larghezza. */
+  .card-head { flex-direction: column; align-items: stretch; }
+  .card-head > div { display: flex; flex-wrap: wrap; gap: 8px; }
+  .card-head .btn {
+    width: 100%;
+    min-height: 46px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  /* Quando piu' pulsanti stanno in un gruppo, si dividono la riga. */
+  .card-head > div .btn { width: auto; flex: 1 1 auto; }
+
+  /* --- Tabelle come schede impilate (una "card" per riga) --- */
+  .table-wrap { overflow-x: visible; }
+  .data-table thead { display: none; }
+  .data-table,
+  .data-table tbody,
+  .data-table tr,
+  .data-table td { display: block; width: 100%; }
+  .data-table tr {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    padding: 4px 14px;
+    margin-bottom: 12px;
+  }
+  .data-table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    text-align: right;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .data-table tr td:last-child { border-bottom: none; }
+  /* Etichetta della colonna, ricavata dal data-label sulla cella. */
+  .data-table td::before {
+    content: attr(data-label);
+    flex: 0 0 auto;
+    text-align: left;
+    font-family: var(--font-display);
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  /* Celle senza etichetta (caricamento, vuoto, errori): testo a sinistra. */
+  .data-table td:not([data-label]) { justify-content: flex-start; text-align: left; }
+
+  /* Celle con pulsanti: bersagli touch pieni e affiancati. */
+  .data-table td[data-label="Azioni"],
+  .data-table td[data-label="Rettifica"] { flex-wrap: wrap; }
+  .data-table td .btn-small {
+    flex: 1 1 auto;
+    min-height: 44px;
+    margin: 0;
+    font-size: 1rem;
+  }
+
+  /* La barra "festa aperta" diventa il bordo sinistro della scheda. */
+  .data-table tr.row-active { box-shadow: inset 5px 0 0 var(--rosso), var(--shadow); }
+
+  /* Filtri magazzino impilati a tutta larghezza. */
+  .filter-bar { flex-direction: column; }
+  .filter-bar input[type="search"],
+  .filter-bar select { width: 100%; }
+
+  /* Form e azioni a colonna singola. */
+  .form-grid { grid-template-columns: 1fr; }
+  .form-actions { flex-direction: column; }
+  .form-actions .btn { width: 100%; }
+
+  /* Dashboard: KPI e grafici uno per riga. */
+  .kpi-row,
+  .dash-grid { grid-template-columns: 1fr; }
+
+  /* Modale quasi a tutto schermo, vicino al bordo alto. */
+  .modal-overlay { padding: 10px; }
+  .modal { margin-top: 10px; padding: 20px 16px; }
+}
+
 /* ---------- Rispetto delle preferenze di movimento ridotto ---------- */
 @media (prefers-reduced-motion: reduce) {
   * {

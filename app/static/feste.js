@@ -34,10 +34,13 @@ function renderEvents() {
       if (e.key === "Enter" || e.key === " ") { e.preventDefault(); window.location.href = url; }
     });
 
+    // data-label: usato dal CSS per impilare le celle come schede su telefono.
     const tdState = document.createElement("td");
+    tdState.setAttribute("data-label", "Stato");
     tdState.textContent = ev.active ? "● Aperta" : "Chiusa";
 
     const tdName = document.createElement("td");
+    tdName.setAttribute("data-label", "Nome");
     const link = document.createElement("a");
     link.href = url;
     link.className = "row-link";
@@ -45,9 +48,11 @@ function renderEvents() {
     tdName.appendChild(link);
 
     const tdDate = document.createElement("td");
+    tdDate.setAttribute("data-label", "Data");
     tdDate.textContent = ev.start_date || "";
 
     const tdNote = document.createElement("td");
+    tdNote.setAttribute("data-label", "Note");
     tdNote.textContent = ev.note || "";
 
     tr.appendChild(tdState);

@@ -93,14 +93,23 @@ function renderProducts() {
   }
   for (const p of productsCache) {
     const tr = document.createElement("tr");
-    const cells = [p.sort_order, p.name, p.category, Admin.formatEuro(p.price_cents),
-      p.active ? "Si" : "No"];
-    for (const val of cells) {
+    // [etichetta, valore]: l'etichetta alimenta il data-label per la vista a
+    // schede su telefono (CSS).
+    const cells = [
+      ["Ordine", p.sort_order],
+      ["Nome", p.name],
+      ["Categoria", p.category],
+      ["Prezzo", Admin.formatEuro(p.price_cents)],
+      ["Attivo", p.active ? "Si" : "No"],
+    ];
+    for (const [labelText, val] of cells) {
       const td = document.createElement("td");
+      td.setAttribute("data-label", labelText);
       td.textContent = val;
       tr.appendChild(td);
     }
     const tdActions = document.createElement("td");
+    tdActions.setAttribute("data-label", "Azioni");
     const editBtn = document.createElement("button");
     editBtn.type = "button";
     editBtn.className = "btn btn-small";

@@ -53,16 +53,22 @@ function renderStock() {
     const tr = document.createElement("tr");
     if (s.quantity <= 0) tr.className = "row-empty";
 
+    // data-label: usato dal CSS per impilare le celle come schede su telefono.
     const tdName = document.createElement("td");
+    tdName.setAttribute("data-label", "Articolo");
     tdName.textContent = s.name;
     const tdCat = document.createElement("td");
+    tdCat.setAttribute("data-label", "Categoria");
     tdCat.textContent = s.category;
     const tdQty = document.createElement("td");
+    tdQty.setAttribute("data-label", "Quantità");
     tdQty.textContent = String(s.quantity);
     const tdUnit = document.createElement("td");
+    tdUnit.setAttribute("data-label", "Unità");
     tdUnit.textContent = s.unit;
 
     const tdAdjust = document.createElement("td");
+    tdAdjust.setAttribute("data-label", "Rettifica");
     const minus = document.createElement("button");
     minus.type = "button";
     minus.className = "btn btn-small";
@@ -77,6 +83,7 @@ function renderStock() {
     tdAdjust.appendChild(plus);
 
     const tdActions = document.createElement("td");
+    tdActions.setAttribute("data-label", "Azioni");
     const editBtn = document.createElement("button");
     editBtn.type = "button";
     editBtn.className = "btn btn-small";
