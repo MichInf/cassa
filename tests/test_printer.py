@@ -46,17 +46,27 @@ def _sample_order() -> dict:
 
 
 def test_render_receipt_contiene_sezioni_attese():
-    """render_receipt su Dummy deve produrre tutte le sezioni dello scontrino."""
+    """render_receipt su Dummy deve produrre le sezioni del nuovo layout."""
     p = Dummy()
     render_receipt(p, _sample_order(), _sample_settings())
     text = p.output.decode(errors="ignore")
 
-    assert "Pro Loco Esempio" in text  # nome associazione
     assert "Sagra del Panino" in text  # nome evento
-    assert "Ordine #7" in text  # numero ordine
-    assert "Panino salamella" in text  # nome prodotto
-    assert "TOTALE" in text  # riga totale
-    assert "Grazie e arrivederci!" in text  # footer
+    assert "2 x Panino salamella" in text  # quantita' + nome prodotto
+    assert "Seguici su instagram!" in text  # invito Instagram
+    assert "@eca_associazione" in text  # handle Instagram
+
+
+def test_render_receipt_senza_prezzi_e_totale():
+    """Il nuovo scontrino non mostra prezzi di riga, totale ne' numero ordine."""
+    p = Dummy()
+    render_receipt(p, _sample_order(), _sample_settings())
+    text = p.output.decode(errors="ignore")
+
+    assert "EUR" not in text  # nessun prezzo
+    assert "TOTALE" not in text  # nessun totale
+    assert "Ordine #" not in text  # nessun numero ordine
+    assert "Pro Loco Esempio" not in text  # associazione rappresentata dal logo
 
 
 def test_print_order_dummy_ok_e_detail():
@@ -66,18 +76,7 @@ def test_print_order_dummy_ok_e_detail():
     assert result["ok"] is True
     assert result["mode"] == "dummy"
     assert result["detail"] is not None
-    assert "TOTALE" in result["detail"]
-
-
-def test_importi_formattati_correttamente():
-    """400 cents x2 = 800 cents deve diventare '8.00 EUR'; totale '12.00 EUR'."""
-    p = Dummy()
-    render_receipt(p, _sample_order(), _sample_settings())
-    text = p.output.decode(errors="ignore")
-
-    assert "8.00 EUR" in text  # riga panini (800c)
-    assert "4.00 EUR" in text  # riga birra (400c)
-    assert "12.00 EUR" in text  # totale (1200c)
+    assert "Seguici su instagram!" in result["detail"]
 
 
 def test_normalizzazione_accenti():

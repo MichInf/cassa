@@ -22,8 +22,19 @@ _USB_IN_EP = 0x82
 _USB_OUT_EP = 0x01
 
 # Larghezza in caratteri della carta termica (tipica 80mm = 42, 58mm = 32).
-# Usata per allineare a destra i totali di riga.
 _LINE_WIDTH = 42
+
+# Larghezza utile della carta in punti (dot). 80mm = 576 dot. Usata per
+# centrare il logo manualmente, senza dipendere dal profilo della stampante
+# (il flag center di python-escpos richiede media.width.pixel nel profilo).
+_PAPER_WIDTH_DOTS = 576
+
+# Logo dell'associazione stampato in cima allo scontrino (PNG monocromatico,
+# bundlato accanto a questo modulo).
+_LOGO_PATH = os.path.join(os.path.dirname(__file__), "logo_eca.png")
+
+# Handle Instagram mostrato in fondo allo scontrino.
+_INSTAGRAM_HANDLE = "@eca_associazione"
 
 
 def _ascii(text: str) -> str:
@@ -76,60 +87,83 @@ def get_printer(settings: dict):
     return Dummy()
 
 
+def _load_centered_logo():
+    """Carga il logo monocromatico centrato su una tela larga quanto la carta.
+
+    Ritorna un'immagine PIL gia' centrata, oppure ``None`` se il file manca o
+    PIL non e' disponibile. Centrare a monte rende il risultato indipendente
+    dal profilo della stampante (il flag ``center`` di python-escpos no).
+    """
+    try:
+        from PIL import Image
+    except ImportError:
+        return None
+    if not os.path.exists(_LOGO_PATH):
+        return None
+    logo = Image.open(_LOGO_PATH).convert("L")
+    # Se il logo e' piu' largo della carta, riduci mantenendo le proporzioni.
+    if logo.width > _PAPER_WIDTH_DOTS:
+        ratio = _PAPER_WIDTH_DOTS / logo.width
+        logo = logo.resize((_PAPER_WIDTH_DOTS, round(logo.height * ratio)))
+    # Tela bianca larga quanto la carta, logo incollato al centro.
+    canvas = Image.new("L", (_PAPER_WIDTH_DOTS, logo.height), color=255)
+    canvas.paste(logo, ((_PAPER_WIDTH_DOTS - logo.width) // 2, 0))
+    return canvas
+
+
+def _print_logo(p) -> None:
+    """Stampa il logo in cima allo scontrino, centrato.
+
+    Se il file manca o la stampa immagine fallisce non solleva: lo scontrino
+    deve comunque uscire (il logo e' decorativo, non essenziale).
+    """
+    try:
+        logo = _load_centered_logo()
+        if logo is not None:
+            p.image(logo)
+    except Exception:  # noqa: BLE001  (il logo non deve mai bloccare la stampa)
+        pass
+
+
 def render_receipt(p, order: dict, settings: dict) -> None:
     """Scrive lo scontrino cliente sulla stampante ``p`` (API python-escpos).
 
-    Ordine delle sezioni: intestazione associazione (grande/bold), evento,
-    data/ora, numero ordine, separatore, righe articoli con totale a destra,
-    separatore, totale in bold, riga vuota, messaggio finale, taglio carta.
+    Ordine delle sezioni: logo associazione, nome evento (bold), data/ora,
+    separatore, righe articoli con sola quantita' (niente prezzi), separatore,
+    invito a seguire su Instagram, taglio carta. Niente totale.
     """
     separator = "-" * _LINE_WIDTH
 
-    # --- Intestazione: nome associazione, centrato e grande/bold ---
-    p.set(align="center", bold=True, width=2, height=2)
-    p.text(_ascii(settings.get("association_name", "")) + "\n")
-
-    # --- Nome evento, centrato (dimensione normale) ---
+    # --- Logo associazione, centrato in alto ---
     p.set(align="center", bold=False, width=1, height=1)
+    _print_logo(p)
+
+    # --- Nome evento, centrato e in bold ---
+    p.set(align="center", bold=True, width=1, height=1)
     p.text(_ascii(settings.get("event_name", "")) + "\n")
 
     # --- Data e ora leggibili ---
+    p.set(align="center", bold=False, width=1, height=1)
     p.text(_format_created_at(order.get("created_at", "")) + "\n")
-
-    # --- Numero ordine progressivo ---
-    p.text(f"Ordine #{order.get('id', '')}\n")
 
     # --- Separatore ---
     p.set(align="left", bold=False, width=1, height=1)
     p.text(separator + "\n")
 
-    # --- Righe articoli: "  2 x Panino salamella" + totale riga a destra ---
+    # --- Righe articoli: solo quantita' e nome, senza prezzi ---
     for item in order.get("items", []):
         qty = item.get("quantity", 0)
         name = _ascii(item.get("product_name", ""))
-        line_total = _eur(item.get("line_total_cents", 0))
-
-        left = f"  {qty} x {name}"
-        # Allinea il totale a destra entro la larghezza riga; se la parte
-        # sinistra e' troppo lunga, manda il totale a capo indentato.
-        spaces = _LINE_WIDTH - len(left) - len(line_total)
-        if spaces >= 1:
-            p.text(left + " " * spaces + line_total + "\n")
-        else:
-            p.text(left + "\n")
-            p.text(" " * (_LINE_WIDTH - len(line_total)) + line_total + "\n")
+        p.text(f"  {qty} x {name}\n")
 
     # --- Separatore ---
     p.text(separator + "\n")
 
-    # --- Totale complessivo in bold ---
-    p.set(align="left", bold=True, width=1, height=1)
-    p.text(f"TOTALE: {_eur(order.get('total_cents', 0))}\n")
-
-    # --- Riga vuota + messaggio finale centrato ---
+    # --- Invito a seguire su Instagram, centrato ---
     p.set(align="center", bold=False, width=1, height=1)
     p.text("\n")
-    p.text(_ascii(settings.get("footer_message", "")) + "\n")
+    p.text("Seguici su instagram!\n")
+    p.text(_INSTAGRAM_HANDLE + "\n")
 
     # --- Taglio carta ---
     p.cut()
