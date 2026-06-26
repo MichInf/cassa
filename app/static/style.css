@@ -1082,14 +1082,46 @@ hr {
 @media (max-width: 600px) {
   body { font-size: 17px; }
 
-  /* Topbar: titolo (e freccia) in alto, navigazione su una riga propria. */
+  /* Topbar: freccia + titolo in alto; le sezioni diventano una barra a tab
+     che occupa tutta la riga sotto, con bersagli touch pieni. */
   .topbar {
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 10px 12px;
     padding: 12px 14px 22px;
   }
-  .topbar-title h1 { font-size: 1.35rem; }
-  .admin-nav { width: 100%; justify-content: flex-start; }
+  .topbar-left { flex: 1 1 auto; min-width: 0; }
+  .topbar-title h1 { font-size: 1.3rem; }
+  .admin-nav {
+    width: 100%;
+    gap: 8px;
+    flex-wrap: nowrap;
+  }
+  /* Feste / Magazzino: tab di pari larghezza che riempiono la riga. */
+  .admin-nav .nav-link {
+    flex: 1 1 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 46px;
+    padding: 10px 8px;
+    font-size: 1rem;
+    text-align: center;
+  }
+  /* Ingranaggio Impostazioni: quadrato fisso in coda alla barra. */
+  .admin-nav .nav-gear {
+    flex: 0 0 46px;
+    width: 46px;
+    height: 46px;
+  }
+  /* Sulla cassa il link "Gestione" va a tutta larghezza sotto al titolo. */
+  .link-admin {
+    flex: 1 1 100%;
+    text-align: center;
+    min-height: 46px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
 
   /* Contenuto admin a pieno schermo, con margini minimi. */
   .admin-content { padding: 16px 12px 32px; }
