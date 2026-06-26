@@ -24,10 +24,12 @@ _USB_OUT_EP = 0x01
 # Larghezza in caratteri della carta termica (tipica 80mm = 42, 58mm = 32).
 _LINE_WIDTH = 32
 
-# Larghezza utile della carta in punti (dot). 80mm = 576 dot. Usata per
-# centrare il logo manualmente, senza dipendere dal profilo della stampante
-# (il flag center di python-escpos richiede media.width.pixel nel profilo).
-_PAPER_WIDTH_DOTS = 576
+# Larghezza utile della carta in punti (dot). Carta 58mm = 384 dot (80mm = 576).
+# Deve corrispondere alla carta reale: e' su questa larghezza che il logo viene
+# centrato manualmente, senza dipendere dal profilo della stampante (il flag
+# center di python-escpos richiede media.width.pixel nel profilo). Se e' troppo
+# grande, il logo "centrato" finisce spostato a destra e viene tagliato.
+_PAPER_WIDTH_DOTS = 384
 
 # Logo dell'associazione stampato in cima allo scontrino (PNG monocromatico,
 # bundlato accanto a questo modulo).
@@ -151,12 +153,14 @@ def render_receipt(p, order: dict, settings: dict) -> None:
     p.text(separator + "\n")
 
     # --- Righe articoli: solo quantita' e nome, senza prezzi ---
-    p.set(align="left", bold=False, width=1, height=2)
+    # double_height ingrandisce il carattere in altezza (i moltiplicatori
+    # width/height di set() vengono ignorati senza custom_size=True).
+    p.set(align="left", bold=True, double_height=True)
     for item in order.get("items", []):
         qty = item.get("quantity", 0)
         name = _ascii(item.get("product_name", ""))
         p.text(f"  {qty} x {name}\n")
-    p.set(align="left", bold=False, width=1, height=1)
+    p.set(align="left", bold=False, double_height=False, width=1, height=1)
 
     # --- Separatore ---
     p.text(separator + "\n")
