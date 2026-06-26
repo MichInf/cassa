@@ -22,7 +22,7 @@ _USB_IN_EP = 0x82
 _USB_OUT_EP = 0x01
 
 # Larghezza in caratteri della carta termica (tipica 80mm = 42, 58mm = 32).
-_LINE_WIDTH = 42
+_LINE_WIDTH = 32
 
 # Larghezza utile della carta in punti (dot). 80mm = 576 dot. Usata per
 # centrare il logo manualmente, senza dipendere dal profilo della stampante
@@ -120,8 +120,7 @@ def _print_logo(p) -> None:
     try:
         logo = _load_centered_logo()
         if logo is not None:
-            p.set(align="left")
-            p.image(logo)
+            p.image(logo, center=False)
     except Exception:  # noqa: BLE001  (il logo non deve mai bloccare la stampa)
         pass
 
@@ -152,10 +151,12 @@ def render_receipt(p, order: dict, settings: dict) -> None:
     p.text(separator + "\n")
 
     # --- Righe articoli: solo quantita' e nome, senza prezzi ---
+    p.set(align="left", bold=False, width=1, height=2)
     for item in order.get("items", []):
         qty = item.get("quantity", 0)
         name = _ascii(item.get("product_name", ""))
         p.text(f"  {qty} x {name}\n")
+    p.set(align="left", bold=False, width=1, height=1)
 
     # --- Separatore ---
     p.text(separator + "\n")
