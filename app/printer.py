@@ -120,6 +120,7 @@ def _print_logo(p) -> None:
     try:
         logo = _load_centered_logo()
         if logo is not None:
+            p.set(align="left")
             p.image(logo)
     except Exception:  # noqa: BLE001  (il logo non deve mai bloccare la stampa)
         pass
