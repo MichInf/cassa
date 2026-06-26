@@ -147,24 +147,6 @@ h1, h2, h3,
   opacity: 0.82;
 }
 
-/* Link "Gestione →" / "Cassa →" sulla cassa. */
-.link-admin {
-  color: #fff;
-  text-decoration: none;
-  font-family: var(--font-display);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  font-size: 0.95rem;
-  padding: 9px 16px;
-  border: 1px solid rgba(255, 255, 255, 0.45);
-  border-radius: 999px;
-  white-space: nowrap;
-}
-
-.link-admin:hover {
-  background: rgba(255, 255, 255, 0.14);
-}
-
 /* ---------- Layout cassa ---------- */
 .cassa-layout {
   display: flex;
@@ -416,7 +398,6 @@ h1, h2, h3,
 /* Focus visibile per tastiera. */
 .btn:focus-visible,
 .nav-link:focus-visible,
-.link-admin:focus-visible,
 .product-btn:focus-visible,
 .row-link:focus-visible,
 input:focus-visible,
@@ -1112,15 +1093,6 @@ hr {
     flex: 0 0 46px;
     width: 46px;
     height: 46px;
-  }
-  /* Sulla cassa il link "Gestione" va a tutta larghezza sotto al titolo. */
-  .link-admin {
-    flex: 1 1 100%;
-    text-align: center;
-    min-height: 46px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
   }
 
   /* Contenuto admin a pieno schermo, con margini minimi. */
